@@ -22,15 +22,31 @@ In fact, the main logic of the game is written, there are small edits and the co
 ### 15.01.2026
 
 ``
-The implementation of the main class is already ready, it remains to polish the points and move on to the RGB class, but it is more like the front end of the project, it reacts to a change in the main class — the game class (Field). Due to the heterogeneity of the system, I'm starting to get a little lost in the structure and decomposition of the project, as I keep everything in my head. It is a good idea to write blocks with the project structure in diagrams.net I think the correct structure for constructing the decomposition scheme will be the following: 
-1) we are thinking about what tasks the project has, if we take the example of the current tic-tac-toe, then these are: the implementation of the game itself, which would be similar to tic-tac-toe in the web version in Python, but Arduino-oriented; the implementation of user input; the implementation of output.
-2) what are the points of each task? If we take the rules of the tic-tac-toe game, then these are: the beginning of the game, the moves, alternately, the end of the game (win or draw).
-3) each item has characteristics, for example: the beginning of the game is an empty field, the cursor is on [0][0] in the field array, we can put it in any position as the initial one, and there is also a starting player (in our case: a tic-tac-toe). The end of the game is a victory or the field is filled (a draw), to fix the victory (hence the dependence in the RGB class, since the fixation occurs exclusively for the player, and not for the correct functionality of the system).  And so on.
+The implementation of the main class is already ready, it remains to polish the points and move on to the RGB class, but it is more like the front end of the project, it reacts to a change in the main class — the game class (Field). Due to the heterogeneity of the system, I'm starting to get a little lost in the structure and decomposition of the project, as I keep everything in my head. It is a good idea to write blocks with the project structure in diagrams.net I think the correct structure for constructing the decomposition scheme will be the following:
+``
 
+``
+-- we are thinking about what tasks the project has, if we take the example of the current tic-tac-toe, then these are: the implementation of the game itself, which would be similar to tic-tac-toe in the web version in Python, but Arduino-oriented; the implementation of user input; the implementation of output.
+``
+
+``  
+-- what are the points of each task? If we take the rules of the tic-tac-toe game, then these are: the beginning of the game, the moves, alternately, the end of the game (win or draw).
+``
+
+``
+-- each item has characteristics, for example: the beginning of the game is an empty field, the cursor is on [0][0] in the field array, we
+can put it in any position as the initial one, and there is also a starting player (in our case: a tic-tac-toe). The end of the game is a victory or the field is filled (a draw), to fix the victory (hence the dependence in the RGB class, since the fixation occurs exclusively for the player, and not for the correct functionality of the system). And so on.
+``
+
+``
 Next, it remains to correctly implement the code for each characteristic of each item of each task.
+``
 
-That's actually how I wrote the code, but it was all in my head. When more than 100 lines were written, I already began to forget what I wanted to realize, ideas appeared and went out like supernova explosions. I started writing notes in the code and came to the conclusion that implementing a decomposition scheme is a very good idea. To the next project (like tamagotchi) this will be mandatory due to the multitasking nature of the code. 
+``
+That's actually how I wrote the code, but it was all in my head. When more than 100 lines were written, I already began to forget what I wanted to realize, ideas appeared and went out like supernova explosions. I started writing notes in the code and came to the conclusion that implementing a decomposition scheme is a very good idea. To the next project (like tamagotchi) this will be mandatory due to the multitasking nature of the code.
+``
 
+``
 And it's also worth thinking about soldering, since now every project of mine is based on a solderless breadboard and it's inconvenient. Extremely inconvenient.
 ``
 
