@@ -182,30 +182,66 @@ class RGB_matrix{
 
   // функция возвращает индекс первой верхней клетки в ячейках поля 3*3 чтобы используя мат формулы рисовать картинку от первой клетки
   // в качестве аргумента принимает результат функции xyindex_to_index()
-  int real_rgb_index[9] = {30, 25, 20, 97, 102, 107, 190, 185, 180}; // индекс первой верхней клетки в ячейках поля 3*3 (по порядку от 1ой до 9ой согласно таблице)
-  int start_cell(int index){
-    int num =  real_rgb_index[index];
-    return num;
-  };
+  int real_rgb_index[9][2] = {{2, 2}, {7, 2}, {12, 2}, {2, 7}, {7, 7}, {12, 7}, {2, 12}, {7, 12}, {12, 12}}; // индексы X и Y первой верхней клетки в ячейках поля 3*3 (по порядку от 1ой до 9ой согласно таблице)
 
 
   // функция при вводе x и y по таблице возвращает индекс в матрице
   int XY(int x, int y) {
     int index = 0;
-    if (y % 2 == 0) {  // значит, согласно таблице, строка начинается с нечетного
-      int start_y = 31 * (y / 2) + (y / 2) - 1;
-      index = start_y - x + 1;
-    } else if (y % 2 > 0) {
-      float w = y / 2;
-      int start_x = int(w) * 32;
-      index = start_x + x - 1;
+    if (y % 2 == 0) {  // значит, согласно таблице, строка начинается с четного
+        index = 16 * (y - 1) + x - 1;
+    }
+    else if (y % 2 > 0) { // значит, согласно таблице, строка начинается с нечетного
+        index = 16 * y - x;
     };
     return index;
+};
+
+
+
+  // функция принимает в качестве параметра результата функции xyindex_to_index() и он дальше используется для получения координат первой клетки в блоке и прорисовки рисунка в ней
+  void draw_x(int coordinate, CRGB color){
+    int Xbase = real_rgb_index[coordinate][0];
+    int Ybase = real_rgb_index[coordinate][1];
+    leds[XY(Xbase, Ybase)] = color;
+    leds[XY(Xbase + 3, Ybase)] = color;
+    leds[XY(Xbase + 1, Ybase + 1)] = color;
+    leds[XY(Xbase + 2, Ybase + 1)] = color;
+    leds[XY(Xbase + 1, Ybase + 2)] = color;
+    leds[XY(Xbase + 2, Ybase + 2)] = color;
+    leds[XY(Xbase, Ybase + 3)] = color;
+    leds[XY(Xbase + 3, Ybase+ 3)] = color;
+    FastLED.show();   
   };
 
+  // функция принимает в качестве параметра результата функции xyindex_to_index() и он дальше используется для получения координат первой клетки в блоке и прорисовки рисунка в ней
+  void draw_o(int coordinate, CRGB color){
+    int Xbase = real_rgb_index[coordinate][0];
+    int Ybase = real_rgb_index[coordinate][1];
+    leds[XY(Xbase + 1, Ybase)] = color;
+    leds[XY(Xbase + 2, Ybase)] = color;
+    leds[XY(Xbase, Ybase + 1)] = color;
+    leds[XY(Xbase + 3, Ybase + 1)] = color;
+    leds[XY(Xbase, Ybase + 2)] = color;
+    leds[XY(Xbase + 3, Ybase + 2)] = color;
+    leds[XY(Xbase + 1, Ybase + 3)] = color;
+    leds[XY(Xbase + 2, Ybase + 3)] = color;
+    FastLED.show();
+};
 
-  void draw_x(int first){
 
+  void lines(){
+    int coordinates[4][2] = {{6, 6}, {11, 6}, {6, 11}, {11, 11}};
+    for(int i = 0; i < 5; i++){
+      for(int z = 0; z < 4; z++){
+        leds[XY(coordinates[z][0] - i, coordinates[z][1])] = CRGB::Yellow;
+        leds[XY(coordinates[z][0] + i, coordinates[z][1])] = CRGB::Yellow;
+        leds[XY(coordinates[z][0], coordinates[z][1] - i)] = CRGB::Yellow;
+        leds[XY(coordinates[z][0], coordinates[z][1] + i)] = CRGB::Yellow;
+      };
+      FastLED.show();
+      delay(350);
+    };
   };
 
 
@@ -244,13 +280,15 @@ class RGB_matrix{
 
 
 RGB_matrix object;
+CRGB leds[256];
 
 void setup () {
   //pinMode(X, INPUT);
   //pinMode(Y, INPUT);
   //Field game;
   object.init();
-  object.circle_start_animation();
+  
+  
 }
 
 
@@ -261,5 +299,13 @@ void loop () {
   FastLED.clear(true);
   object.circle_start_animation();
   delay(1000);
+  object.lines();
+  object.draw_x(4);
+  object.draw_x(7);
+  object.draw_o(0);
+  object.draw_o(2);
+  object.draw_o(8);
+  delay(5000);
+
 
 }
