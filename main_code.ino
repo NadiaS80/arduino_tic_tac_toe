@@ -89,7 +89,10 @@ class Field {
   };
 
   enum Win_states {X_WIN, O_WIN, NOBODY, NOT_END};
-// функция возвраает статус выигрыша. от нее зависит продолжится ли игра или нет.
+
+  int win_combination_index = 0;
+
+  // функция возвращает статус выигрыша. от нее зависит продолжится ли игра или нет.
   Win_states win_or_not(){
     Win_states result = NOBODY;
     bool end = true;
@@ -110,9 +113,11 @@ class Field {
         if (first_el == 'X'){
           result = X_WIN;
           have_winner = true;
+          win_combination_index = i;
         } else if (first_el == 'O'){
           result = O_WIN;
           have_winner = true;
+          win_combination_index = i;
         };
       };      
     };
@@ -121,6 +126,7 @@ class Field {
     };
     return result;
   };
+
 
 
  
@@ -166,7 +172,7 @@ class RGB_matrix{
   CRGB leds[256];
 
   void init(){
-    FastLED.addLeds<WS2812, 9, GRB>(leds, 256);
+    FastLED.addLeds<WS2812, rgb_pin, GRB>(leds, 256); // rgb_pin объявлен в начале кода (номер 9)
     FastLED.setBrightness(11);
     FastLED.clear(true);
     FastLED.show();
@@ -175,15 +181,11 @@ class RGB_matrix{
   // функция возвращает индекс от 0 до 8, для понимания стартовой позиции в клетке в функции start_cell()
   // в качестве аргументов передавать в функцию переменные cursor_str и cursor_column из класса Field
   int xyindex_to_index(int x, int y){
-    int index = x + (3 * y);
+    int index = y * 3 + x;
     return index;
   };
  
-
-  // функция возвращает индекс первой верхней клетки в ячейках поля 3*3 чтобы используя мат формулы рисовать картинку от первой клетки
-  // в качестве аргумента принимает результат функции xyindex_to_index()
   int real_rgb_index[9][2] = {{2, 2}, {7, 2}, {12, 2}, {2, 7}, {7, 7}, {12, 7}, {2, 12}, {7, 12}, {12, 12}}; // индексы X и Y первой верхней клетки в ячейках поля 3*3 (по порядку от 1ой до 9ой согласно таблице)
-
 
   // функция при вводе x и y по таблице возвращает индекс в матрице
   int XY(int x, int y) {
@@ -198,8 +200,8 @@ class RGB_matrix{
 };
 
 
-
   // функция принимает в качестве параметра результата функции xyindex_to_index() и он дальше используется для получения координат первой клетки в блоке и прорисовки рисунка в ней
+  // в качестве параметра принимает еще цвет(яркий красный или нет), не имеет FastLED.show() - надо вызывать отдельно 
   void draw_x(int coordinate, CRGB color){
     int Xbase = real_rgb_index[coordinate][0];
     int Ybase = real_rgb_index[coordinate][1];
@@ -210,11 +212,11 @@ class RGB_matrix{
     leds[XY(Xbase + 1, Ybase + 2)] = color;
     leds[XY(Xbase + 2, Ybase + 2)] = color;
     leds[XY(Xbase, Ybase + 3)] = color;
-    leds[XY(Xbase + 3, Ybase+ 3)] = color;
-    FastLED.show();   
+    leds[XY(Xbase + 3, Ybase+ 3)] = color;   
   };
 
   // функция принимает в качестве параметра результата функции xyindex_to_index() и он дальше используется для получения координат первой клетки в блоке и прорисовки рисунка в ней
+  // в качестве параметра принимает еще цвет(яркий голубой или нет), не имеет FastLED.show() - надо вызывать отдельно 
   void draw_o(int coordinate, CRGB color){
     int Xbase = real_rgb_index[coordinate][0];
     int Ybase = real_rgb_index[coordinate][1];
@@ -226,10 +228,10 @@ class RGB_matrix{
     leds[XY(Xbase + 3, Ybase + 2)] = color;
     leds[XY(Xbase + 1, Ybase + 3)] = color;
     leds[XY(Xbase + 2, Ybase + 3)] = color;
-    FastLED.show();
 };
 
 
+  // функция рисует сетку от четырех угловых точек центральной клетки
   void lines(){
     int coordinates[4][2] = {{6, 6}, {11, 6}, {6, 11}, {11, 11}};
     for(int i = 0; i < 5; i++){
@@ -244,7 +246,7 @@ class RGB_matrix{
     };
   };
 
-
+  // функция запускает начальную анимацию границ поля
   void circle_start_animation(int start_x = 1, int start_y = 1){
     while (start_x != 16){
       int coordinate = XY(start_x, start_y);
@@ -275,12 +277,116 @@ class RGB_matrix{
       delay(500);
     };
   };
+  
+  
+  // функция запускает завершающую анимацию. в качестве аргументов принимает статус завершения(тип enum Win_states в классе Field) 
+  // и числовые индексы-координаты верхних левых клеток победивших клеток для подсветки их
+  // если есть победитель функция подсвечивает 3мя миганиями победные клетки цветом победителя, если победителя нет - пропускает этот шаг
+  // далее функция убирает сетку обратной анимацией (от края поля к четырем угловым точкам центральной клетки)
+  // далее каждая клетка поочередно подсвечивается белым цветом, затирая тем самым все ходы
+  // далее все, кроме внешней границы поля гаснет
+  void end_animation(Field::Win_states state, int first_index, int second_index, int third_index){
+    auto lines_revers = [&](){
+      int coordinates[4][2] = {{6, 6}, {11, 6}, {6, 11}, {11, 11}};
+      for(int i = 4; i > -1; i--){
+        for(int z = 0; z < 4; z++){
+          leds[XY(coordinates[z][0] - i, coordinates[z][1])] = CRGB::Yellow;
+          leds[XY(coordinates[z][0] + i, coordinates[z][1])] = CRGB::Yellow;
+          leds[XY(coordinates[z][0], coordinates[z][1] - i)] = CRGB::Yellow;
+          leds[XY(coordinates[z][0], coordinates[z][1] + i)] = CRGB::Yellow;
+        };
+        FastLED.show();
+        delay(350);
+      };
+    };
+    
+    auto draw = [&](CRGB color){
+      int first_cells_list[3] = {first_index, second_index, third_index};
+      for (int i = 0; i < 3; i++){
+        for (int y = 0; y < 4; y++){
+          for (int x = 0; x < 4; x++){
+            leds[XY(real_rgb_index[first_cells_list[i]][0] + x, real_rgb_index[first_cells_list[i]][1] + y)] = color;
+          };
+        };
+      };
+    };
+    
+
+    CRGB win_color = CRGB::Red;
+    if (state == Field::O_WIN){
+      win_color = CRGB::Blue;
+    };
+    
+
+    if (state != Field::NOBODY){
+      for (int o = 0; o < 3; o++){
+        draw(win_color);
+        FastLED.show();
+        delay(500);
+        draw(CRGB::Black);
+        FastLED.show();
+        delay(500);
+      };
+    };
+    
+    lines_revers();
+    
+    for (int i = 0; i < 9; i++){
+      for (int y = 0; y < 4; y++){
+        for (int x = 0; x < 4; x++){
+          leds[XY(real_rgb_index[i][0] + x, real_rgb_index[i][1] + y)] = CRGB::White;
+        };
+      };
+      FastLED.show();
+      delay(200);
+    };
+    
+    delay(450);
+
+    for (int y = 0; y < 15; y++){
+      for (int x = 0; x < 15; x++){
+        leds[XY(2 + x, 2 + y)] = CRGB::Black;
+      };
+    };
+    FastLED.show();
+ 
+  };
+
+
+
+
 };
 
 
 
+
+
+class Controller{
+  Field game;
+  RGB_matrix show;
+  
+  int first_winner = 0;
+  int second_winner = 0;
+  int third_winner = 0;
+  void revers_win_combination_to_index(){
+    auto xy = [&](int x, int y){
+      int result = y * 3 + x;
+      return result;
+    };
+    first_winner = xy(game.win_combination[game.win_combination_index][0][0], game.win_combination[game.win_combination_index][0][1]);
+    second_winner = xy(game.win_combination[game.win_combination_index][1][0], game.win_combination[game.win_combination_index][1][1]);
+    third_winner = xy(game.win_combination[game.win_combination_index][2][0], game.win_combination[game.win_combination_index][2][1]);
+  };
+
+
+
+};
+
+
+
+
+
 RGB_matrix object;
-CRGB leds[256];
 
 void setup () {
   //pinMode(X, INPUT);
@@ -300,11 +406,11 @@ void loop () {
   object.circle_start_animation();
   delay(1000);
   object.lines();
-  object.draw_x(4);
-  object.draw_x(7);
-  object.draw_o(0);
-  object.draw_o(2);
-  object.draw_o(8);
+  object.draw_x(4, CRGB::Red);
+  object.draw_x(7, CRGB::Red);
+  object.draw_o(0, CRGB::Blue);
+  object.draw_o(2, CRGB::Blue);
+  object.draw_o(8, CRGB::Blue);
   delay(5000);
 
 
