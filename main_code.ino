@@ -12,17 +12,16 @@ enum State {UP, DOWN, LEFT, RIGHT, NONE};
 State click(int pinX, int pinY) {
   if ((pinX > 256 && pinX < 768) && (pinY > 1000)) {
     return UP;
-} else if ((pinX > 256 && pinX < 768) && (pinY < 100)) {
-  return DOWN;
-} else if ((pinY > 256 && pinY < 768) && (pinX < 100)) {
-  return RIGHT;
-} else if ((pinY > 256 && pinY < 768) && (pinX > 1000)) { 
-  return LEFT;
-} else {
-  return NONE;
+  } else if ((pinX > 256 && pinX < 768) && (pinY < 100)) {
+    return DOWN;
+  } else if ((pinY > 256 && pinY < 768) && (pinX < 100)) {
+    return RIGHT;
+  } else if ((pinY > 256 && pinY < 768) && (pinX > 1000)) { 
+    return LEFT;
+  } else {
+    return NONE;
+  };
 };
-};
-
 
 
 // класс с логикой игры 
@@ -290,10 +289,10 @@ class RGB_matrix{
       int coordinates[4][2] = {{6, 6}, {11, 6}, {6, 11}, {11, 11}};
       for(int i = 4; i > -1; i--){
         for(int z = 0; z < 4; z++){
-          leds[XY(coordinates[z][0] - i, coordinates[z][1])] = CRGB::Yellow;
-          leds[XY(coordinates[z][0] + i, coordinates[z][1])] = CRGB::Yellow;
-          leds[XY(coordinates[z][0], coordinates[z][1] - i)] = CRGB::Yellow;
-          leds[XY(coordinates[z][0], coordinates[z][1] + i)] = CRGB::Yellow;
+          leds[XY(coordinates[z][0] - i, coordinates[z][1])] = CRGB::Black;
+          leds[XY(coordinates[z][0] + i, coordinates[z][1])] = CRGB::Black;
+          leds[XY(coordinates[z][0], coordinates[z][1] - i)] = CRGB::Black;
+          leds[XY(coordinates[z][0], coordinates[z][1] + i)] = CRGB::Black;
         };
         FastLED.show();
         delay(350);
@@ -327,6 +326,12 @@ class RGB_matrix{
         FastLED.show();
         delay(500);
       };
+      draw(win_color);
+      FastLED.show();
+      delay(1300);
+      draw(CRGB::Black);
+      FastLED.show();
+      delay(500);
     };
     
     lines_revers();
@@ -341,15 +346,15 @@ class RGB_matrix{
       delay(200);
     };
     
-    delay(450);
+    delay(1000);
 
-    for (int y = 0; y < 15; y++){
-      for (int x = 0; x < 15; x++){
+    for (int y = 0; y < 14; y++){
+      for (int x = 0; x < 14; x++){
         leds[XY(2 + x, 2 + y)] = CRGB::Black;
       };
     };
     FastLED.show();
- 
+    delay(500);
   };
 
 
@@ -362,9 +367,18 @@ class RGB_matrix{
 
 
 class Controller{
+  public:
+
   Field game;
   RGB_matrix show;
+
+  show.init();
+  show.circle_start_animation();
+  delay(1000);
+  object.lines();
   
+
+
   int first_winner = 0;
   int second_winner = 0;
   int third_winner = 0;
@@ -386,32 +400,47 @@ class Controller{
 
 
 
+
+
 RGB_matrix object;
+Field game;
 
 void setup () {
-  //pinMode(X, INPUT);
-  //pinMode(Y, INPUT);
-  //Field game;
-  object.init();
-  
+  pinMode(x_jostik_pin, INPUT);
+  pinMode(y_jostik_pin, INPUT);
+
   
 }
 
 
+
 void loop () {
+  int pinX = analogRead(x_jostik_pin);
+  int pinY = analogRead(y_jostik_pin);
+  State move = click(pinX, pinY);
+
+
+}
+
+
+
+
+//void loop () {
   //int pinX = analogRead(X);
   //int pinY = analogRead(Y);
   //State move = click(pinX, pinY);
-  FastLED.clear(true);
-  object.circle_start_animation();
-  delay(1000);
-  object.lines();
-  object.draw_x(4, CRGB::Red);
-  object.draw_x(7, CRGB::Red);
-  object.draw_o(0, CRGB::Blue);
-  object.draw_o(2, CRGB::Blue);
-  object.draw_o(8, CRGB::Blue);
-  delay(5000);
-
+ // FastLED.clear(true);
+ // object.circle_start_animation();
+ // delay(1000);
+ // object.lines();
+ // object.draw_x(4, CRGB::Red);
+ // object.draw_x(7, CRGB::Red);
+ // object.draw_o(0, CRGB::Blue);
+ // object.draw_o(2, CRGB::Blue);
+ // object.draw_o(8, CRGB::Blue);
+ // FastLED.show();
+ // delay(5000);
+ // object.end_animation(game.O_WIN, 2, 5, 8);
+ // delay(5000);
 
 }
