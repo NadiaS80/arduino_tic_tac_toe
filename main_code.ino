@@ -2,6 +2,7 @@
 
 #define x_jostik_pin A1
 #define y_jostik_pin A2
+#define push_jostik_pin 2
 
 #define rgb_pin 9
 
@@ -376,7 +377,12 @@ class Controller{
   show.circle_start_animation();
   delay(1000);
   object.lines();
-  
+
+  void virtual_matrix_to_rgb(){
+    game.field
+
+  } 
+
 
 
   int first_winner = 0;
@@ -402,22 +408,52 @@ class Controller{
 
 
 
-RGB_matrix object;
+RGB_matrix show;
 Field game;
 
 void setup () {
   pinMode(x_jostik_pin, INPUT);
   pinMode(y_jostik_pin, INPUT);
-
+  pinMode(push_jostik_pin, INPUT);
+  show.init();
+  show.circle_start_animation();
+  delay(1000);
+  object.lines();
   
 }
 
+
+int last_buttom_state = 0;
+int current_buttom_state = 0;
 
 
 void loop () {
   int pinX = analogRead(x_jostik_pin);
   int pinY = analogRead(y_jostik_pin);
-  State move = click(pinX, pinY);
+  State cursor_move = click(pinX, pinY);
+  game.cursor(cursor_move);
+  int cell_index = show.xyindex_to_index(game.cursor_str, game.cursor_column);
+
+  if (game.index_player == 0){
+    show.draw_x(cell_index, CRGB::DarkRed);
+    FastLED.show();
+  } else if (game.index_player == 1){
+    show.draw_o(cell_index, CRGB::DarkBlue);
+    FastLED.show();
+  };
+
+
+  if (digitalRead(push_jostik_pin) == HIGH){
+    current_state = 1;
+  } else if (digitalRead(push_jostik_pin) == LOW){
+    current_state = 0;
+  };
+  
+  if (current_state == 1 and last_state == 0){
+    game.simbol(cursor_str, cursor_column);
+
+  };
+  
 
 
 }
