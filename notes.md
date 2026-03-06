@@ -68,3 +68,35 @@ Yesterday, an RGB matrix arrived at my place, I thought that I would power it di
 I don't have much time for Arduino. Nevertheless, I dedicate a lot of myself to him. The code has changed quite a lot over the last month. I came to the point that in addition to the main class with the logic of the virtual game and in addition to the display class on the matrix, a controller class is also needed, which will structure the methods that will be called from loop() in the right order.
 The RGB class has an XY function that translates the XY coordinates into an index in the table. I was very pleased with myself when I wrote the formula for displaying it on the matrix. Although I deduced the formula without any prompting, I didn't fully understand why it worked hahaha, somehow it turned out intuitively. After the output to the real matrix, I discovered that I initially misunderstood the matrix indexes and the snake of LEDs goes in the other direction and the indexes correspondingly... Yes, I magically rewrote the formula and it turned out to be working, although I don't fully understand how exactly. Yes, I would never have thought that writing a children's game was not so easy.
 ``
+
+
+---
+
+
+
+### 07.03.2026
+
+``
+Finally I reached the final stage — the code is completely written.
+The main difficulty turned out to be calling the functions in the correct way.
+At different moments ideas for functions came to me in the format of:
+“oh, actually, I could write a function that would act as a connecting link”,
+and I wrote them in Telegram IDE haha.
+Later I edited the format and rewrote everything in Arduino IDE. Since I didn’t build a logical scheme of the project from the beginning and kept everything in my head, I got confused about what exactly should be called and in what order.
+Eventually I finished writing the necessary functions.
+Yes, in terms of style and code cleanliness it’s not perfect, but keeping the logic of ~500 lines of code entirely in your head is honestly not the best idea.
+In the next projects, one of the first steps will be to describe the project logic in words.
+``
+
+``
+And then, at 2:20 AM, I launched the project.
+Three bugs appeared:
+the cursor flies around (reading delays are needed)
+the button is read automatically (I’ll try to fix it by reversing HIGH/LOW)
+the indices of the winning combination are mixed up
+``
+
+``
+Honestly, I’m shocked that there are so few bugs and that the Arduino didn’t explode from my code the moment I first connected it to power hahaha.
+Probably that will happen in the future…
+``
