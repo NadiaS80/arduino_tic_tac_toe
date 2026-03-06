@@ -59,6 +59,7 @@ class Field {
     } else if (index_start_player == 1){
       index_start_player -= 1;
     };
+    index_player = index_start_player;
   };
 
   // функция меняет индекс игрока, swich_player() плюс simbol() влияют на раскладку field[3][3], которая влияет на отображаемую раскладку на RGB
@@ -70,11 +71,14 @@ class Field {
     };
   };
 
-  // функция меняет пустую клетку в зависимости от хода игрока
-  void simbol(int str, int column){
-    if (field[column][str] == 'v'){
-      field[column][str] = players[index_player];
-    }
+  // функция меняет пустую клетку в зависимости от хода игрока и возвращает статус успеха кода если ход был - true, если нет - false
+  bool simbol(){
+    if (field[cursor_column][cursor_str] == 'v'){
+      field[cursor_column][cursor_str] = players[index_player];
+      return true;
+    } else {
+      return false;;
+    };
   };
 
   int win_combination[8][3][2] = {
@@ -149,7 +153,6 @@ class Field {
     cursor_str = 0;
     cursor_column = 0;
     swich_start_player();
-    index_player = index_start_player;
   };
 };
 
@@ -228,8 +231,17 @@ class RGB_matrix{
     leds[XY(Xbase + 3, Ybase + 2)] = color;
     leds[XY(Xbase + 1, Ybase + 3)] = color;
     leds[XY(Xbase + 2, Ybase + 3)] = color;
-};
+  };
 
+  // функция обновления матрицы, стирает весь рисунок. В качестве аргументов принимает x и y, внутри преобразовывает через функцию XY, постепенно прибавляя по одному значению к X и Y. Не имеет функцию FastLED.show(), надо вызывать отдельно 
+  void draw_v(int coordinate_x, int coordinate_y){
+    for (int i = 0; i  < 4; i++){
+      for (int o = 0; o < 4; o++){
+        leds[XY(coordinate_x + o, coordinate_y + i)] = CRGB::Black;
+      };
+    };
+
+  };
 
   // функция рисует сетку от четырех угловых точек центральной клетки
   void lines(){
@@ -358,58 +370,69 @@ class RGB_matrix{
     delay(500);
   };
 
-
-
-
 };
-
-
-
-
-
-class Controller{
-  public:
-
-  Field game;
-  RGB_matrix show;
-
-  show.init();
-  show.circle_start_animation();
-  delay(1000);
-  object.lines();
-
-  void virtual_matrix_to_rgb(){
-    game.field
-
-  } 
-
-
-
-  int first_winner = 0;
-  int second_winner = 0;
-  int third_winner = 0;
-  void revers_win_combination_to_index(){
-    auto xy = [&](int x, int y){
-      int result = y * 3 + x;
-      return result;
-    };
-    first_winner = xy(game.win_combination[game.win_combination_index][0][0], game.win_combination[game.win_combination_index][0][1]);
-    second_winner = xy(game.win_combination[game.win_combination_index][1][0], game.win_combination[game.win_combination_index][1][1]);
-    third_winner = xy(game.win_combination[game.win_combination_index][2][0], game.win_combination[game.win_combination_index][2][1]);
-  };
-
-
-
-};
-
-
-
-
 
 
 
 RGB_matrix show;
 Field game;
+
+
+
+int first_winner = 0;
+int second_winner = 0;
+int third_winner = 0;
+void revers_win_combination_to_index(){
+  auto xy = [&](int x, int y){
+    int result = y * 3 + x;
+    return result;
+  };
+  first_winner = xy(game.win_combination[game.win_combination_index][0][0], game.win_combination[game.win_combination_index][0][1]);
+  second_winner = xy(game.win_combination[game.win_combination_index][1][0], game.win_combination[game.win_combination_index][1][1]);
+  third_winner = xy(game.win_combination[game.win_combination_index][2][0], game.win_combination[game.win_combination_index][2][1]);
+};
+
+
+
+void virtual_matrix_to_rgb(){
+  int counter = 0;
+  for (int i = 0; i < 3; i++){
+    for (int o = 0; o < 3; o++){
+      char simbol = game.field[i][o];
+      bool cursor = false;
+      if (i == game.cursor_column && o == game.cursor_str){
+        cursor = true;
+      };
+      if (simbol == 'v'){
+        if (cursor == true){
+          if (game.index_player == 0){
+            show.draw_x(counter, CRGB::DarkRed);
+          } else if (game.index_player == 1){
+            show.draw_o(counter, CRGB::DarkBlue);
+          };
+        } else { 
+        show.draw_v(show.real_rgb_index[counter][0], show.real_rgb_index[counter][1]);
+        };
+      } else if (simbol == 'X'){
+        if (cursor == true){
+          show.draw_x(counter, CRGB(255, 40, 40));
+        } else {
+          show.draw_x(counter, CRGB::Red);
+        };
+      } else if (simbol == 'O'){
+        if (cursor == true){
+          show.draw_o(counter, CRGB(80, 200, 255));
+        } else {
+        show.draw_o(counter, CRGB::Blue);
+        }
+      };
+      counter++;
+    };
+  };
+  FastLED.show();
+};
+
+
 
 void setup () {
   pinMode(x_jostik_pin, INPUT);
@@ -418,11 +441,12 @@ void setup () {
   show.init();
   show.circle_start_animation();
   delay(1000);
-  object.lines();
-  
+  show.lines();
 }
 
 
+
+// для кнопки
 int last_buttom_state = 0;
 int current_buttom_state = 0;
 
@@ -432,51 +456,39 @@ void loop () {
   int pinY = analogRead(y_jostik_pin);
   State cursor_move = click(pinX, pinY);
   game.cursor(cursor_move);
-  int cell_index = show.xyindex_to_index(game.cursor_str, game.cursor_column);
+  virtual_matrix_to_rgb();
 
-  if (game.index_player == 0){
-    show.draw_x(cell_index, CRGB::DarkRed);
-    FastLED.show();
-  } else if (game.index_player == 1){
-    show.draw_o(cell_index, CRGB::DarkBlue);
-    FastLED.show();
-  };
-
-
+  //логика кнопки
   if (digitalRead(push_jostik_pin) == HIGH){
-    current_state = 1;
+    current_buttom_state = 1;
   } else if (digitalRead(push_jostik_pin) == LOW){
-    current_state = 0;
+    current_buttom_state = 0;
   };
   
-  if (current_state == 1 and last_state == 0){
-    game.simbol(cursor_str, cursor_column);
-
+  if (current_buttom_state == 1 and last_buttom_state == 0){
+    bool move = game.simbol();
+    if (move == true){
+      Field::Win_states state = game.win_or_not();
+      if (state != Field::NOT_END && state != Field::NOBODY){
+        revers_win_combination_to_index();
+        show.end_animation(state, first_winner, second_winner, third_winner);
+        delay(500);
+        game.next_round();
+        show.lines();
+      } else if (state == Field::NOBODY){
+        show.end_animation(state, first_winner, second_winner, third_winner);
+        delay(500);
+        game.next_round();
+        show.lines();
+      } else {
+      game.swich_player();
+      };
+    };
   };
-  
+  //
+
+  last_buttom_state = current_buttom_state;
 
 
-}
-
-
-
-
-//void loop () {
-  //int pinX = analogRead(X);
-  //int pinY = analogRead(Y);
-  //State move = click(pinX, pinY);
- // FastLED.clear(true);
- // object.circle_start_animation();
- // delay(1000);
- // object.lines();
- // object.draw_x(4, CRGB::Red);
- // object.draw_x(7, CRGB::Red);
- // object.draw_o(0, CRGB::Blue);
- // object.draw_o(2, CRGB::Blue);
- // object.draw_o(8, CRGB::Blue);
- // FastLED.show();
- // delay(5000);
- // object.end_animation(game.O_WIN, 2, 5, 8);
- // delay(5000);
 
 }
