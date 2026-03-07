@@ -35,6 +35,7 @@ ARDUINO_Tic_Tac_Toe
 │
 ├── main_code.ino
 ├── notes.md
+├── LICENCE
 └── README.md
 ```
 
@@ -49,6 +50,9 @@ Main Arduino source file containing the entire game logic, rendering system, and
 **notes.md**  
 A collection of notes written during development.  
 These include ideas, debugging observations, and thoughts recorded throughout the project.
+
+**LICENCE**
+MIT LICENCE
 
 **README.md**  
 Project documentation.
