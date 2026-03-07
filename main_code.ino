@@ -183,10 +183,10 @@ class RGB_matrix{
   
   // функция возвращает индекс от 0 до 8, для понимания стартовой позиции в клетке в функции start_cell()
   // в качестве аргументов передавать в функцию переменные cursor_str и cursor_column из класса Field
-  int xyindex_to_index(int x, int y){
-    int index = y * 3 + x;
-    return index;
-  };
+  //int xyindex_to_index(int x, int y){
+   // int index = y * 3 + x;
+  //  return index;
+  //};
  
   int real_rgb_index[9][2] = {{2, 2}, {7, 2}, {12, 2}, {2, 7}, {7, 7}, {12, 7}, {2, 12}, {7, 12}, {12, 12}}; // индексы X и Y первой верхней клетки в ячейках поля 3*3 (по порядку от 1ой до 9ой согласно таблице)
 
@@ -384,7 +384,7 @@ int second_winner = 0;
 int third_winner = 0;
 void revers_win_combination_to_index(){
   auto xy = [&](int x, int y){
-    int result = y * 3 + x;
+    int result = x * 3 + y;
     return result;
   };
   first_winner = xy(game.win_combination[game.win_combination_index][0][0], game.win_combination[game.win_combination_index][0][1]);
@@ -437,7 +437,7 @@ void virtual_matrix_to_rgb(){
 void setup () {
   pinMode(x_jostik_pin, INPUT);
   pinMode(y_jostik_pin, INPUT);
-  pinMode(push_jostik_pin, INPUT);
+  pinMode(push_jostik_pin, INPUT_PULLUP);
   show.init();
   show.circle_start_animation();
   delay(1000);
@@ -450,18 +450,24 @@ void setup () {
 int last_buttom_state = 0;
 int current_buttom_state = 0;
 
+// для джойстика
+State last_joystick = NONE;
+
 
 void loop () {
   int pinX = analogRead(x_jostik_pin);
   int pinY = analogRead(y_jostik_pin);
   State cursor_move = click(pinX, pinY);
-  game.cursor(cursor_move);
+  if (last_joystick == NONE && cursor_move != NONE){
+    game.cursor(cursor_move);
+  };
+  
   virtual_matrix_to_rgb();
 
   //логика кнопки
-  if (digitalRead(push_jostik_pin) == HIGH){
+  if (digitalRead(push_jostik_pin) == LOW){
     current_buttom_state = 1;
-  } else if (digitalRead(push_jostik_pin) == LOW){
+  } else if (digitalRead(push_jostik_pin) == HIGH){
     current_buttom_state = 0;
   };
   
@@ -488,7 +494,6 @@ void loop () {
   //
 
   last_buttom_state = current_buttom_state;
-
-
+  last_joystick = cursor_move;
 
 }
